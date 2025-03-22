@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User, LogOut, Moon, Sun } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { 
@@ -16,6 +16,7 @@ export const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const isAuthenticated = false; // This should be replaced with actual auth state
   const isHome = location.pathname === '/';
@@ -40,6 +41,25 @@ export const Navbar: React.FC = () => {
     document.documentElement.classList.toggle('dark');
   };
 
+  const handleNavLinkClick = (path: string) => {
+    if (path.startsWith('#')) {
+      // Handle anchor links
+      const element = document.querySelector(path);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      } else if (isHome) {
+        // If on home page but anchor doesn't exist yet, just stay on page
+        return;
+      } else {
+        // If not on home page, navigate to home page with anchor
+        navigate('/' + path);
+      }
+    } else {
+      // Handle regular navigation
+      navigate(path);
+    }
+  };
+
   const navLinks = isDashboard 
     ? [
         { name: 'Home', path: '/dashboard' },
@@ -49,8 +69,23 @@ export const Navbar: React.FC = () => {
       ]
     : [
         { name: 'Home', path: '/' },
-        { name: 'About', path: '/#about' },
+        { name: 'About', path: '#about' },
       ];
+
+  const isActiveLink = (path: string) => {
+    if (path.startsWith('#')) {
+      // For anchor links, match if we're on home page and hash matches
+      return isHome && location.hash === path;
+    } else if (path === '/dashboard') {
+      // For dashboard home, match exact path
+      return location.pathname === path;
+    } else if (path.includes('/dashboard/')) {
+      // For dashboard tabs, match if current path includes the tab path
+      return location.pathname.includes(path);
+    }
+    // For other paths, exact match
+    return location.pathname === path;
+  };
 
   return (
     <header 
@@ -74,15 +109,15 @@ export const Navbar: React.FC = () => {
           {/* Desktop navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <Link
+              <button
                 key={link.name}
-                to={link.path}
+                onClick={() => handleNavLinkClick(link.path)}
                 className={`text-sm font-medium transition-colors hover:text-primary ${
-                  location.pathname === link.path ? 'text-primary' : 'text-foreground/80'
+                  isActiveLink(link.path) ? 'text-primary' : 'text-foreground/80'
                 }`}
               >
                 {link.name}
-              </Link>
+              </button>
             ))}
             
             {isAuthenticated ? (
@@ -153,14 +188,13 @@ export const Navbar: React.FC = () => {
         <div className="md:hidden bg-background/95 backdrop-blur-md animate-slide-in">
           <div className="px-4 pt-2 pb-4 space-y-1 border-t">
             {navLinks.map((link) => (
-              <Link
+              <button
                 key={link.name}
-                to={link.path}
-                className="block py-3 text-base font-medium text-foreground hover:text-primary"
-                onClick={() => setIsOpen(false)}
+                onClick={() => handleNavLinkClick(link.path)}
+                className="block w-full text-left py-3 text-base font-medium text-foreground hover:text-primary"
               >
                 {link.name}
-              </Link>
+              </button>
             ))}
             
             {!isAuthenticated && !isDashboard && (
