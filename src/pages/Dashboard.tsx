@@ -1,10 +1,11 @@
+
 import React, { useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import ExercisePlanner from '@/components/ExercisePlanner';
-import DietPlanner from '@/components/DietPlanner';
-import Competition from '@/components/Competition';
+import { ExercisePlanner } from '@/components/ExercisePlanner';
+import { DietPlanner } from '@/components/DietPlanner';
+import { Competition } from '@/components/Competition';
 
 const DashboardHome = () => {
   return (
