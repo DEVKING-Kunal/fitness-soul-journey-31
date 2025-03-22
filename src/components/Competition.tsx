@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -611,3 +610,5 @@ export const Competition: React.FC = () => {
     </div>
   );
 };
+
+export default Competition;
