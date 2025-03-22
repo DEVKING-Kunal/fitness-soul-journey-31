@@ -22,7 +22,8 @@ import {
   Check,
   X,
   Heart,
-  AlertCircle
+  AlertCircle,
+  ArrowRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 
