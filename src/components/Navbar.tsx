@@ -15,8 +15,19 @@ export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+  
+  // Safely use React Router hooks with error handling
+  let location: { pathname: string, hash: string } = { pathname: '/', hash: '' };
+  let navigate: (path: string) => void = () => {};
+  
+  try {
+    location = useLocation();
+    const navigateFunc = useNavigate();
+    navigate = navigateFunc;
+  } catch (error) {
+    console.log('Router hooks not available, using fallbacks');
+  }
+  
   const isMobile = useIsMobile();
   const isAuthenticated = false; // This should be replaced with actual auth state
   const isHome = location.pathname === '/';
@@ -51,12 +62,22 @@ export const Navbar: React.FC = () => {
         // If on home page but anchor doesn't exist yet, just stay on page
         return;
       } else {
-        // If not on home page, navigate to home page with anchor
-        navigate('/' + path);
+        try {
+          // If not on home page, navigate to home page with anchor
+          navigate('/' + path);
+        } catch (error) {
+          // Fallback for when navigate is not available
+          window.location.href = '/' + path;
+        }
       }
     } else {
-      // Handle regular navigation
-      navigate(path);
+      try {
+        // Handle regular navigation with React Router
+        navigate(path);
+      } catch (error) {
+        // Fallback for when navigate is not available
+        window.location.href = path;
+      }
     }
   };
 
