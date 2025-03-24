@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -41,9 +40,16 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!loginEmail || !loginPassword) {
+      toast.error('Please enter both email and password');
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
+      console.log('Attempting login with:', loginEmail);
       await login(loginEmail, loginPassword);
       navigate('/dashboard');
     } catch (error) {
@@ -57,15 +63,27 @@ const Auth = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!signupEmail || !signupPassword) {
+      toast.error('Please enter both email and password');
+      return;
+    }
+    
     if (signupPassword !== signupConfirmPassword) {
       toast.error('Passwords do not match.');
+      return;
+    }
+    
+    if (signupPassword.length < 6) {
+      toast.error('Password must be at least 6 characters long');
       return;
     }
     
     setIsLoading(true);
     
     try {
+      console.log('Attempting signup with:', signupEmail);
       await signup(signupEmail, signupPassword);
+      toast.success('Account created successfully! Please complete your profile.');
       navigate('/profile');
     } catch (error) {
       console.error('Signup error:', error);
@@ -240,6 +258,9 @@ const Auth = () => {
                         disabled={isLoading}
                         className="bg-background/50 backdrop-blur-sm"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Password must be at least 6 characters long
+                      </p>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-confirm-password">Confirm Password</Label>
