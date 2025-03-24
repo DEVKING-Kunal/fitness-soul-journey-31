@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,10 +16,12 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const { login, signup, googleSignIn, currentUser } = useAuth();
   
   // Login form state
   const [loginEmail, setLoginEmail] = useState('');
@@ -30,20 +32,23 @@ const Auth = () => {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
 
+  useEffect(() => {
+    // If already logged in, redirect to dashboard
+    if (currentUser) {
+      navigate('/dashboard');
+    }
+  }, [currentUser, navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Demo mode - simply redirect to profile setup
-      navigate('/profile');
-      toast.success('Welcome back!');
+      await login(loginEmail, loginPassword);
+      navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Login failed. Please check your credentials.');
+      // Toast notifications are handled in the auth context
     } finally {
       setIsLoading(false);
     }
@@ -60,15 +65,11 @@ const Auth = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Demo mode - simply redirect to profile setup
+      await signup(signupEmail, signupPassword);
       navigate('/profile');
-      toast.success('Account created successfully!');
     } catch (error) {
       console.error('Signup error:', error);
-      toast.error('Signup failed. Please try again.');
+      // Toast notifications are handled in the auth context
     } finally {
       setIsLoading(false);
     }
@@ -78,15 +79,11 @@ const Auth = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Demo mode - simply redirect to profile setup
-      navigate('/profile');
-      toast.success('Successfully signed in with Google!');
+      await googleSignIn();
+      navigate('/dashboard');
     } catch (error) {
       console.error('Google auth error:', error);
-      toast.error('Google authentication failed. Please try again.');
+      // Toast notifications are handled in the auth context
     } finally {
       setIsLoading(false);
     }
@@ -96,8 +93,9 @@ const Auth = () => {
     <Layout>
       <div className="min-h-screen flex items-center justify-center py-24 px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8 relative">
-          <div className="absolute -top-10 -left-10 w-40 h-40 bg-fitness-100 rounded-full filter blur-3xl opacity-30 -z-10"></div>
-          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-fitness-100 rounded-full filter blur-3xl opacity-30 -z-10"></div>
+          {/* Animated gradient background */}
+          <div className="absolute -top-10 -left-10 w-40 h-40 bg-gradient-to-br from-fitness-300 to-fitness-500 rounded-full filter blur-3xl opacity-30 -z-10 animate-pulse"></div>
+          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-gradient-to-bl from-fitness-400 to-fitness-600 rounded-full filter blur-3xl opacity-30 -z-10 animate-pulse"></div>
           
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight text-gradient">Welcome to Fitness Soul</h1>
@@ -113,7 +111,7 @@ const Auth = () => {
             </TabsList>
             
             <TabsContent value="login">
-              <Card className="border border-border shadow-sm">
+              <Card className="border border-border shadow-sm bg-background/70 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle>Login to your account</CardTitle>
                   <CardDescription>
@@ -132,6 +130,7 @@ const Auth = () => {
                         onChange={(e) => setLoginEmail(e.target.value)}
                         required
                         disabled={isLoading}
+                        className="bg-background/50 backdrop-blur-sm"
                       />
                     </div>
                     <div className="space-y-2">
@@ -156,11 +155,12 @@ const Auth = () => {
                         onChange={(e) => setLoginPassword(e.target.value)}
                         required
                         disabled={isLoading}
+                        className="bg-background/50 backdrop-blur-sm"
                       />
                     </div>
                     <Button 
                       type="submit" 
-                      className="w-full bg-primary hover:bg-primary/90 button-shine"
+                      className="w-full bg-gradient-to-r from-fitness-500 to-fitness-700 hover:from-fitness-600 hover:to-fitness-800 button-shine"
                       disabled={isLoading}
                     >
                       {isLoading ? 'Logging in...' : 'Login'}
@@ -206,7 +206,7 @@ const Auth = () => {
             </TabsContent>
             
             <TabsContent value="signup">
-              <Card className="border border-border shadow-sm">
+              <Card className="border border-border shadow-sm bg-background/70 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle>Create an account</CardTitle>
                   <CardDescription>
@@ -225,6 +225,7 @@ const Auth = () => {
                         onChange={(e) => setSignupEmail(e.target.value)}
                         required
                         disabled={isLoading}
+                        className="bg-background/50 backdrop-blur-sm"
                       />
                     </div>
                     <div className="space-y-2">
@@ -237,6 +238,7 @@ const Auth = () => {
                         onChange={(e) => setSignupPassword(e.target.value)}
                         required
                         disabled={isLoading}
+                        className="bg-background/50 backdrop-blur-sm"
                       />
                     </div>
                     <div className="space-y-2">
@@ -249,11 +251,12 @@ const Auth = () => {
                         onChange={(e) => setSignupConfirmPassword(e.target.value)}
                         required
                         disabled={isLoading}
+                        className="bg-background/50 backdrop-blur-sm"
                       />
                     </div>
                     <Button 
                       type="submit" 
-                      className="w-full bg-primary hover:bg-primary/90 button-shine"
+                      className="w-full bg-gradient-to-r from-fitness-500 to-fitness-700 hover:from-fitness-600 hover:to-fitness-800 button-shine"
                       disabled={isLoading}
                     >
                       {isLoading ? 'Creating account...' : 'Sign Up'}

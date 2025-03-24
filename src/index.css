@@ -45,6 +45,17 @@
     --sidebar-accent-foreground: 240 6% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217 91% 60%;
+
+    --fitness-50: 199 89% 96%;
+    --fitness-100: 199 89% 92%;
+    --fitness-200: 199 89% 85%;
+    --fitness-300: 199 89% 75%;
+    --fitness-400: 199 89% 65%;
+    --fitness-500: 199 89% 48%;
+    --fitness-600: 199 89% 40%;
+    --fitness-700: 199 89% 32%;
+    --fitness-800: 199 89% 25%;
+    --fitness-900: 199 89% 18%;
   }
 
   .dark {
@@ -84,6 +95,17 @@
     --sidebar-accent-foreground: 240 5% 96%;
     --sidebar-border: 240 4% 16%;
     --sidebar-ring: 217 91% 60%;
+
+    --fitness-50: 199 30% 15%;
+    --fitness-100: 199 30% 20%;
+    --fitness-200: 199 40% 30%;
+    --fitness-300: 199 50% 40%;
+    --fitness-400: 199 60% 50%;
+    --fitness-500: 199 70% 60%;
+    --fitness-600: 199 80% 70%;
+    --fitness-700: 199 85% 75%;
+    --fitness-800: 199 90% 85%;
+    --fitness-900: 199 95% 90%;
   }
 }
 
@@ -137,7 +159,7 @@
   }
   
   .glass-panel {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-lg;
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-lg dark:bg-black/40 dark:border-white/10;
   }
   
   .card-hover {
@@ -172,5 +194,66 @@
 
   .page-transition {
     @apply animate-fade-in;
+  }
+  
+  .gradient-border {
+    position: relative;
+    border-radius: var(--radius);
+    background: linear-gradient(var(--background), var(--background)) padding-box,
+                linear-gradient(to right, hsl(var(--fitness-400)), hsl(var(--fitness-600))) border-box;
+    border: 2px solid transparent;
+  }
+  
+  .gradient-text {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-fitness-500 to-fitness-700;
+  }
+  
+  .fitness-card {
+    @apply bg-gradient-to-br from-fitness-50 to-background border-fitness-100 transition-all duration-300 hover:shadow-md hover:-translate-y-1 dark:from-gray-800 dark:to-gray-900 dark:border-gray-800;
+  }
+  
+  .animated-gradient-bg {
+    background: linear-gradient(-45deg, hsl(var(--fitness-400)), hsl(var(--fitness-600)), hsl(var(--fitness-700)), hsl(var(--fitness-500)));
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    100% {
+      left: 150%;
+    }
   }
 }
