@@ -2,15 +2,14 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 
-// Your Firebase configuration
-// Replace these with your actual Firebase project credentials
+// Firebase configuration with the updated API key
 const firebaseConfig = {
-  apiKey: "AIzaSyDemoKeyForLovableAppNeedsToBeReplaced",
-  authDomain: "fitness-soul-demo.firebaseapp.com",
-  projectId: "fitness-soul-demo",
-  storageBucket: "fitness-soul-demo.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef1234567890abcdef"
+  apiKey: "AIzaSyAQEnedtvLQOrbjdM9R9Dnm6m2y_NRgTfo",
+  authDomain: "fitness-soul.firebaseapp.com",
+  projectId: "fitness-soul",
+  storageBucket: "fitness-soul.firebasestorage.app",
+  messagingSenderId: "575592492168",
+  appId: "1:575592492168:web:7cb21cdd85e5e6ae6f833d"
 };
 
 // Initialize Firebase

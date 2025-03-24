@@ -10,11 +10,13 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const { currentUser, logout } = useAuth();
   
   // Safely use React Router hooks with error handling
   let location: { pathname: string, hash: string } = { pathname: '/', hash: '' };
@@ -29,7 +31,7 @@ export const Navbar: React.FC = () => {
   }
   
   const isMobile = useIsMobile();
-  const isAuthenticated = false; // This should be replaced with actual auth state
+  const isAuthenticated = !!currentUser; // Use the auth context to determine if user is authenticated
   const isHome = location.pathname === '/';
   const isDashboard = location.pathname.includes('/dashboard');
 
@@ -50,6 +52,15 @@ export const Navbar: React.FC = () => {
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
     document.documentElement.classList.toggle('dark');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const handleNavLinkClick = (path: string) => {
@@ -155,11 +166,11 @@ export const Navbar: React.FC = () => {
                       <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <button className="flex items-center w-full">
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <div className="flex items-center w-full">
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Log out</span>
-                    </button>
+                    </div>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -218,13 +229,23 @@ export const Navbar: React.FC = () => {
               </button>
             ))}
             
-            {!isAuthenticated && !isDashboard && (
-              <Button 
-                asChild 
-                className="w-full mt-3 bg-primary hover:bg-primary/90"
+            {isAuthenticated ? (
+              <button 
+                onClick={handleLogout}
+                className="block w-full text-left py-3 text-base font-medium text-foreground hover:text-destructive flex items-center"
               >
-                <Link to="/auth">Get Started</Link>
-              </Button>
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </button>
+            ) : (
+              !isDashboard && (
+                <Button 
+                  asChild 
+                  className="w-full mt-3 bg-primary hover:bg-primary/90"
+                >
+                  <Link to="/auth">Get Started</Link>
+                </Button>
+              )
             )}
           </div>
         </div>
