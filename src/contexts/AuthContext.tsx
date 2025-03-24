@@ -23,6 +23,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   googleSignIn: () => Promise<void>;
   updateUserProfile: (displayName: string) => Promise<void>;
+  clearUserData: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -137,6 +138,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // New function to clear user data from localStorage
+  const clearUserData = () => {
+    localStorage.removeItem('fitnessUserProfile');
+    toast.info("User profile data has been reset.");
+  };
+
   const value = {
     currentUser,
     loading,
@@ -144,7 +151,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signup,
     logout,
     googleSignIn,
-    updateUserProfile
+    updateUserProfile,
+    clearUserData
   };
 
   return (

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const Auth = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const { login, signup, googleSignIn, currentUser } = useAuth();
+  const { login, signup, googleSignIn, currentUser, clearUserData } = useAuth();
   
   // Login form state
   const [loginEmail, setLoginEmail] = useState('');
@@ -51,7 +52,9 @@ const Auth = () => {
     try {
       console.log('Attempting login with:', loginEmail);
       await login(loginEmail, loginPassword);
-      navigate('/dashboard');
+      // Clear any existing user data
+      clearUserData();
+      navigate('/profile');
     } catch (error) {
       console.error('Login error:', error);
       // Toast notifications are handled in the auth context
@@ -83,6 +86,8 @@ const Auth = () => {
     try {
       console.log('Attempting signup with:', signupEmail);
       await signup(signupEmail, signupPassword);
+      // Clear any existing user data
+      clearUserData();
       toast.success('Account created successfully! Please complete your profile.');
       navigate('/profile');
     } catch (error) {
@@ -98,7 +103,9 @@ const Auth = () => {
     
     try {
       await googleSignIn();
-      navigate('/dashboard');
+      // Clear any existing user data
+      clearUserData();
+      navigate('/profile');
     } catch (error) {
       console.error('Google auth error:', error);
       // Toast notifications are handled in the auth context
