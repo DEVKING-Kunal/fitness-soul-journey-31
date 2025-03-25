@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +40,6 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { ChevronRight, Info } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface UserFormData {
   name: string;
@@ -59,7 +58,6 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const { currentUser, clearUserData, setHasCompletedProfile } = useAuth();
   
   const form = useForm<UserFormData>({
     defaultValues: {
@@ -75,15 +73,6 @@ const UserProfile = () => {
       cycleDuration: 28,
     },
   });
-  
-  // Clear any existing user data when the component mounts
-  useEffect(() => {
-    clearUserData();
-    // Initialize form with user's display name if available
-    if (currentUser?.displayName) {
-      form.setValue('name', currentUser.displayName);
-    }
-  }, [currentUser, clearUserData, form]);
   
   const { watch, setValue } = form;
   const sex = watch('sex');
@@ -132,9 +121,6 @@ const UserProfile = () => {
       
       // Store user data in localStorage for demo purposes
       localStorage.setItem('fitnessUserProfile', JSON.stringify(data));
-      
-      // Update profile completion status
-      setHasCompletedProfile(true);
       
       toast.success('Profile completed successfully!');
       navigate('/dashboard');

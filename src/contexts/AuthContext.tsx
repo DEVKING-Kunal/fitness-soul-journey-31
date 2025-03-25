@@ -23,9 +23,6 @@ interface AuthContextType {
   logout: () => Promise<void>;
   googleSignIn: () => Promise<void>;
   updateUserProfile: (displayName: string) => Promise<void>;
-  clearUserData: () => void;
-  hasCompletedProfile: boolean;
-  setHasCompletedProfile: (completed: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -72,20 +69,10 @@ const getAuthErrorMessage = (error: any): string => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hasCompletedProfile, setHasCompletedProfile] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
-      
-      // Check if user has completed profile
-      if (user) {
-        const profileData = localStorage.getItem('fitnessUserProfile');
-        setHasCompletedProfile(!!profileData);
-      } else {
-        setHasCompletedProfile(false);
-      }
-      
       setLoading(false);
     });
 
@@ -95,9 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signup = async (email: string, password: string) => {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      // Clear any existing user data
-      clearUserData();
-      setHasCompletedProfile(false);
       toast.success("Account created successfully!");
     } catch (error: any) {
       const errorMessage = getAuthErrorMessage(error);
@@ -109,9 +93,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Check if user has profile data
-      const profileData = localStorage.getItem('fitnessUserProfile');
-      setHasCompletedProfile(!!profileData);
       toast.success("Successfully logged in!");
     } catch (error: any) {
       const errorMessage = getAuthErrorMessage(error);
@@ -122,10 +103,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const googleSignIn = async () => {
     try {
-      await signInWithPopup(auth, new GoogleAuthProvider());
-      // Check if user has profile data
-      const profileData = localStorage.getItem('fitnessUserProfile');
-      setHasCompletedProfile(!!profileData);
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
       toast.success("Successfully signed in with Google!");
     } catch (error: any) {
       const errorMessage = getAuthErrorMessage(error);
@@ -158,12 +137,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // New function to clear user data from localStorage
-  const clearUserData = () => {
-    localStorage.removeItem('fitnessUserProfile');
-    setHasCompletedProfile(false);
-  };
-
   const value = {
     currentUser,
     loading,
@@ -171,10 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signup,
     logout,
     googleSignIn,
-    updateUserProfile,
-    clearUserData,
-    hasCompletedProfile,
-    setHasCompletedProfile
+    updateUserProfile
   };
 
   return (

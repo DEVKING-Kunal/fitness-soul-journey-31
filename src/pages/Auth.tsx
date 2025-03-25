@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -14,18 +13,14 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { AlertCircle, ArrowRight } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-  const { login, signup, googleSignIn, currentUser, clearUserData } = useAuth();
-  const [activeTab, setActiveTab] = useState<string>('login');
+  const { login, signup, googleSignIn, currentUser } = useAuth();
   
   // Login form state
   const [loginEmail, setLoginEmail] = useState('');
@@ -35,26 +30,13 @@ const Auth = () => {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
-  
-  // Message for returning users
-  const [showReturningUserMessage, setShowReturningUserMessage] = useState(false);
 
   useEffect(() => {
     // If already logged in, redirect to dashboard
     if (currentUser) {
-      navigate('/profile');
+      navigate('/dashboard');
     }
-    
-    // Check if there's a user with profile data in localStorage
-    const profileData = localStorage.getItem('fitnessUserProfile');
-    setShowReturningUserMessage(!!profileData);
-    
-    // If redirected from protected page, show signup tab
-    const from = (location.state as any)?.from?.pathname;
-    if (from) {
-      setActiveTab('signup');
-    }
-  }, [currentUser, navigate, location.state]);
+  }, [currentUser, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,8 +51,7 @@ const Auth = () => {
     try {
       console.log('Attempting login with:', loginEmail);
       await login(loginEmail, loginPassword);
-      // Profile check is handled in auth context
-      navigate('/profile');
+      navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
       // Toast notifications are handled in the auth context
@@ -102,8 +83,7 @@ const Auth = () => {
     try {
       console.log('Attempting signup with:', signupEmail);
       await signup(signupEmail, signupPassword);
-      // Clear any existing user data
-      clearUserData();
+      toast.success('Account created successfully! Please complete your profile.');
       navigate('/profile');
     } catch (error) {
       console.error('Signup error:', error);
@@ -118,9 +98,7 @@ const Auth = () => {
     
     try {
       await googleSignIn();
-      // Clear any existing user data
-      clearUserData();
-      navigate('/profile');
+      navigate('/dashboard');
     } catch (error) {
       console.error('Google auth error:', error);
       // Toast notifications are handled in the auth context
@@ -144,22 +122,7 @@ const Auth = () => {
             </p>
           </div>
           
-          {showReturningUserMessage && (
-            <Alert className="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-              <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <AlertTitle>Returning User?</AlertTitle>
-              <AlertDescription>
-                We noticed you've been here before. You can log in to continue your fitness journey.
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          <Tabs 
-            defaultValue="login" 
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full animate-fade-in"
-          >
+          <Tabs defaultValue="login" className="w-full animate-fade-in">
             <TabsList className="grid w-full grid-cols-2 mb-8">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
