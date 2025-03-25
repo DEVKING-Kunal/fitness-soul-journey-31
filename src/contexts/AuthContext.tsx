@@ -18,7 +18,7 @@ import {
   createUserProfile,
   updateUserProfile as updateFirestoreProfile,
   UserProfile
-} from '@/services/firestoreService';
+} from '@/services/userProfileService';
 
 interface AuthContextType {
   currentUser: User | null;

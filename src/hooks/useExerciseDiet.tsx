@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -11,7 +10,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 export const useExerciseDiet = () => {
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,20 +39,20 @@ export const useExerciseDiet = () => {
 
   // Exercise functions
   const fetchUserExercises = useCallback(async () => {
-    if (!user?.uid) return;
+    if (!currentUser?.uid) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      const fetchedExercises = await ExerciseService.getUserExercises(user.uid);
+      const fetchedExercises = await ExerciseService.getUserExercises(currentUser.uid);
       setExercises(fetchedExercises);
     } catch (error) {
       handleError(error, "Failed to fetch exercises");
     } finally {
       setLoading(false);
     }
-  }, [user?.uid, toast]);
+  }, [currentUser?.uid, toast]);
 
   const fetchExercise = useCallback(async (exerciseId: string) => {
     setLoading(true);
@@ -72,7 +71,7 @@ export const useExerciseDiet = () => {
   }, [toast]);
 
   const createExercise = useCallback(async (exerciseData: Omit<Exercise, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
-    if (!user?.uid) {
+    if (!currentUser?.uid) {
       handleError(new Error("User not authenticated"), "You must be logged in to create an exercise");
       return null;
     }
@@ -83,7 +82,7 @@ export const useExerciseDiet = () => {
     try {
       const newExerciseData = {
         ...exerciseData,
-        userId: user.uid
+        userId: currentUser.uid
       };
       
       const exerciseId = await ExerciseService.createExercise(newExerciseData);
@@ -93,7 +92,6 @@ export const useExerciseDiet = () => {
         description: "Exercise created successfully",
       });
       
-      // Refresh the exercises list
       fetchUserExercises();
       
       return exerciseId;
@@ -103,10 +101,10 @@ export const useExerciseDiet = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.uid, fetchUserExercises, toast]);
+  }, [currentUser?.uid, fetchUserExercises, toast]);
 
   const updateExercise = useCallback(async (exerciseId: string, exerciseData: Partial<Omit<Exercise, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>) => {
-    if (!user?.uid) {
+    if (!currentUser?.uid) {
       handleError(new Error("User not authenticated"), "You must be logged in to update an exercise");
       return false;
     }
@@ -122,7 +120,6 @@ export const useExerciseDiet = () => {
         description: "Exercise updated successfully",
       });
       
-      // Refresh the exercises list
       fetchUserExercises();
       
       return true;
@@ -132,10 +129,10 @@ export const useExerciseDiet = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.uid, fetchUserExercises, toast]);
+  }, [currentUser?.uid, fetchUserExercises, toast]);
 
   const deleteExercise = useCallback(async (exerciseId: string) => {
-    if (!user?.uid) {
+    if (!currentUser?.uid) {
       handleError(new Error("User not authenticated"), "You must be logged in to delete an exercise");
       return false;
     }
@@ -151,7 +148,6 @@ export const useExerciseDiet = () => {
         description: "Exercise deleted successfully",
       });
       
-      // Refresh the exercises list
       fetchUserExercises();
       
       return true;
@@ -161,27 +157,27 @@ export const useExerciseDiet = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.uid, fetchUserExercises, toast]);
+  }, [currentUser?.uid, fetchUserExercises, toast]);
 
   // Exercise Set functions
   const fetchUserExerciseSets = useCallback(async () => {
-    if (!user?.uid) return;
+    if (!currentUser?.uid) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      const fetchedExerciseSets = await ExerciseService.getUserExerciseSets(user.uid);
+      const fetchedExerciseSets = await ExerciseService.getUserExerciseSets(currentUser.uid);
       setExerciseSets(fetchedExerciseSets);
     } catch (error) {
       handleError(error, "Failed to fetch exercise sets");
     } finally {
       setLoading(false);
     }
-  }, [user?.uid, toast]);
+  }, [currentUser?.uid, toast]);
 
   const createExerciseSet = useCallback(async (exerciseSetData: Omit<ExerciseSet, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
-    if (!user?.uid) {
+    if (!currentUser?.uid) {
       handleError(new Error("User not authenticated"), "You must be logged in to create an exercise set");
       return null;
     }
@@ -192,7 +188,7 @@ export const useExerciseDiet = () => {
     try {
       const newExerciseSetData = {
         ...exerciseSetData,
-        userId: user.uid
+        userId: currentUser.uid
       };
       
       const exerciseSetId = await ExerciseService.createExerciseSet(newExerciseSetData);
@@ -202,7 +198,6 @@ export const useExerciseDiet = () => {
         description: "Exercise set created successfully",
       });
       
-      // Refresh the exercise sets list
       fetchUserExerciseSets();
       
       return exerciseSetId;
@@ -212,24 +207,24 @@ export const useExerciseDiet = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.uid, fetchUserExerciseSets, toast]);
+  }, [currentUser?.uid, fetchUserExerciseSets, toast]);
 
   // Diet functions
   const fetchUserDiets = useCallback(async () => {
-    if (!user?.uid) return;
+    if (!currentUser?.uid) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      const fetchedDiets = await DietService.getUserDiets(user.uid);
+      const fetchedDiets = await DietService.getUserDiets(currentUser.uid);
       setDiets(fetchedDiets);
     } catch (error) {
       handleError(error, "Failed to fetch diets");
     } finally {
       setLoading(false);
     }
-  }, [user?.uid, toast]);
+  }, [currentUser?.uid, toast]);
 
   const fetchDiet = useCallback(async (dietId: string) => {
     setLoading(true);
@@ -248,7 +243,7 @@ export const useExerciseDiet = () => {
   }, [toast]);
 
   const createDiet = useCallback(async (dietData: Omit<Diet, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
-    if (!user?.uid) {
+    if (!currentUser?.uid) {
       handleError(new Error("User not authenticated"), "You must be logged in to create a diet");
       return null;
     }
@@ -259,7 +254,7 @@ export const useExerciseDiet = () => {
     try {
       const newDietData = {
         ...dietData,
-        userId: user.uid
+        userId: currentUser.uid
       };
       
       const dietId = await DietService.createDiet(newDietData);
@@ -269,7 +264,6 @@ export const useExerciseDiet = () => {
         description: "Diet plan created successfully",
       });
       
-      // Refresh the diets list
       fetchUserDiets();
       
       return dietId;
@@ -279,10 +273,10 @@ export const useExerciseDiet = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.uid, fetchUserDiets, toast]);
+  }, [currentUser?.uid, fetchUserDiets, toast]);
 
   const updateDiet = useCallback(async (dietId: string, dietData: Partial<Omit<Diet, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>) => {
-    if (!user?.uid) {
+    if (!currentUser?.uid) {
       handleError(new Error("User not authenticated"), "You must be logged in to update a diet");
       return false;
     }
@@ -298,7 +292,6 @@ export const useExerciseDiet = () => {
         description: "Diet plan updated successfully",
       });
       
-      // Refresh the diets list
       fetchUserDiets();
       
       return true;
@@ -308,10 +301,10 @@ export const useExerciseDiet = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.uid, fetchUserDiets, toast]);
+  }, [currentUser?.uid, fetchUserDiets, toast]);
 
   const deleteDiet = useCallback(async (dietId: string) => {
-    if (!user?.uid) {
+    if (!currentUser?.uid) {
       handleError(new Error("User not authenticated"), "You must be logged in to delete a diet");
       return false;
     }
@@ -327,7 +320,6 @@ export const useExerciseDiet = () => {
         description: "Diet plan deleted successfully",
       });
       
-      // Refresh the diets list
       fetchUserDiets();
       
       return true;
@@ -337,7 +329,7 @@ export const useExerciseDiet = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.uid, fetchUserDiets, toast]);
+  }, [currentUser?.uid, fetchUserDiets, toast]);
 
   return {
     // Common
