@@ -16,24 +16,9 @@ import { useNavigate } from 'react-router-dom';
 import { 
   getUserProfile,
   createUserProfile,
-  updateUserProfile as updateFirestoreProfile
+  updateUserProfile as updateFirestoreProfile,
+  UserProfile
 } from '@/services/firestoreService';
-
-interface UserProfile {
-  name: string;
-  age: number;
-  sex: 'male' | 'female' | 'other';
-  weight: number;
-  height: number;
-  goal: string;
-  experienceLevel: string;
-  menstrualTracking?: boolean;
-  lastPeriodDate?: string;
-  cycleDuration?: number;
-  profileCompleted: boolean;
-  createdAt: any;
-  updatedAt: any;
-}
 
 interface AuthContextType {
   currentUser: User | null;
@@ -106,8 +91,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const profileData = await getUserProfile(user.uid);
       
       if (profileData) {
-        setUserProfile(profileData as UserProfile);
-        return profileData as UserProfile;
+        setUserProfile(profileData);
+        return profileData;
       } else {
         setUserProfile(null);
         return null;
@@ -194,7 +179,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.success("Successfully signed in with Google! Please complete your profile.");
         navigate('/profile');
       } else {
-        setUserProfile(profile as UserProfile);
+        setUserProfile(profile);
         
         toast.success("Successfully signed in with Google!");
         
@@ -271,10 +256,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
       
+      const createdAt = existingProfile?.createdAt || serverTimestamp();
+      
       setUserProfile({
         ...profileData,
         profileCompleted: true,
-        createdAt: existingProfile ? existingProfile.createdAt : serverTimestamp(),
+        createdAt,
         updatedAt: serverTimestamp()
       } as UserProfile);
       

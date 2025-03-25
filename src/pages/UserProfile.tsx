@@ -41,6 +41,7 @@ import { useForm } from 'react-hook-form';
 import { ChevronRight, Info, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserProfile as UserProfileType } from '@/services/firestoreService';
 
 interface UserFormData {
   name: string;
