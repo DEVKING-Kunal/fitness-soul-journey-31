@@ -59,7 +59,7 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const { currentUser, clearUserData } = useAuth();
+  const { currentUser, clearUserData, setHasCompletedProfile } = useAuth();
   
   const form = useForm<UserFormData>({
     defaultValues: {
@@ -132,6 +132,9 @@ const UserProfile = () => {
       
       // Store user data in localStorage for demo purposes
       localStorage.setItem('fitnessUserProfile', JSON.stringify(data));
+      
+      // Update profile completion status
+      setHasCompletedProfile(true);
       
       toast.success('Profile completed successfully!');
       navigate('/dashboard');
