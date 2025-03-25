@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,8 +38,9 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { ChevronRight, Info } from 'lucide-react';
+import { ChevronRight, Info, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface UserFormData {
   name: string;
@@ -58,6 +59,7 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const { currentUser, userProfile, saveUserProfile, profileLoading } = useAuth();
   
   const form = useForm<UserFormData>({
     defaultValues: {
@@ -73,6 +75,34 @@ const UserProfile = () => {
       cycleDuration: 28,
     },
   });
+  
+  // Load user profile data if available
+  useEffect(() => {
+    if (userProfile && !profileLoading) {
+      form.reset({
+        name: userProfile.name || '',
+        age: userProfile.age || undefined,
+        sex: userProfile.sex || undefined,
+        weight: userProfile.weight || undefined,
+        height: userProfile.height || undefined,
+        goal: userProfile.goal || '',
+        experienceLevel: userProfile.experienceLevel || 'beginner',
+        menstrualTracking: userProfile.menstrualTracking || false,
+        lastPeriodDate: userProfile.lastPeriodDate || '',
+        cycleDuration: userProfile.cycleDuration || 28,
+      });
+      
+      // If name is already set, proceed to step 2
+      if (userProfile.name && userProfile.age && userProfile.sex) {
+        setCurrentStep(2);
+      }
+      
+      // If weight/height/goal are set, proceed to step 3
+      if (userProfile.weight && userProfile.height && userProfile.goal) {
+        setCurrentStep(3);
+      }
+    }
+  }, [userProfile, profileLoading, form]);
   
   const { watch, setValue } = form;
   const sex = watch('sex');
@@ -115,14 +145,10 @@ const UserProfile = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      console.log('Form data:', data);
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Save to Firestore using AuthContext
+      await saveUserProfile(data);
       
-      // Store user data in localStorage for demo purposes
-      localStorage.setItem('fitnessUserProfile', JSON.stringify(data));
-      
-      toast.success('Profile completed successfully!');
+      // Navigate to dashboard after successful profile completion
       navigate('/dashboard');
     } catch (error) {
       console.error('Profile submission error:', error);
@@ -131,6 +157,18 @@ const UserProfile = () => {
       setIsLoading(false);
     }
   };
+  
+  // Show loading spinner while profile is loading
+  if (profileLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex flex-col items-center justify-center">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="mt-4 text-muted-foreground">Loading your profile...</p>
+        </div>
+      </Layout>
+    );
+  }
   
   const renderStepIndicator = () => {
     return (
@@ -518,7 +556,14 @@ const UserProfile = () => {
                       className="bg-primary hover:bg-primary/90 button-shine"
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Finalizing your profile...' : 'Complete Profile'}
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving profile...
+                        </>
+                      ) : (
+                        'Complete Profile'
+                      )}
                     </Button>
                   )}
                 </CardFooter>
