@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { 
   User, 
@@ -10,16 +9,15 @@ import {
   signInWithPopup,
   updateProfile,
 } from 'firebase/auth';
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  serverTimestamp 
-} from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { serverTimestamp } from 'firebase/firestore';
+import { auth } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { 
+  getUserProfile,
+  createUserProfile,
+  updateUserProfile as updateFirestoreProfile
+} from '@/services/firestoreService';
 
 interface UserProfile {
   name: string;
@@ -61,7 +59,6 @@ export const useAuth = () => {
   return context;
 };
 
-// Helper function to get user-friendly error messages
 const getAuthErrorMessage = (error: any): string => {
   const errorCode = error.code;
   
@@ -101,19 +98,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isProfileCompleted = !!userProfile?.profileCompleted;
 
-  // Fetch user profile from Firestore
   const fetchUserProfile = async (user: User) => {
     if (!user) return null;
     
     setProfileLoading(true);
     try {
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
+      const profileData = await getUserProfile(user.uid);
       
-      if (userDoc.exists()) {
-        const profileData = userDoc.data() as UserProfile;
-        setUserProfile(profileData);
-        return profileData;
+      if (profileData) {
+        setUserProfile(profileData as UserProfile);
+        return profileData as UserProfile;
       } else {
         setUserProfile(null);
         return null;
@@ -134,7 +128,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (user) {
         const profile = await fetchUserProfile(user);
         
-        // If user is logged in but profile not completed, redirect to profile page
         if (!profile?.profileCompleted) {
           navigate('/profile');
         }
@@ -150,12 +143,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Create initial user document in Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
+      await createUserProfile(userCredential.user.uid, {
         email: userCredential.user.email,
-        profileCompleted: false,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        profileCompleted: false
       });
       
       toast.success("Account created successfully! Please complete your profile.");
@@ -171,12 +161,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      // Check if profile is completed
       const profile = await fetchUserProfile(userCredential.user);
       
       toast.success("Successfully logged in!");
       
-      // Redirect based on profile completion status
       if (!profile?.profileCompleted) {
         navigate('/profile');
       } else {
@@ -194,26 +182,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(auth, provider);
       
-      // Check if user already exists in Firestore
-      const userDocRef = doc(db, 'users', userCredential.user.uid);
-      const userDoc = await getDoc(userDocRef);
+      const profile = await getUserProfile(userCredential.user.uid);
       
-      if (!userDoc.exists()) {
-        // Create new user document if first time login
-        await setDoc(userDocRef, {
+      if (!profile) {
+        await createUserProfile(userCredential.user.uid, {
           email: userCredential.user.email,
           name: userCredential.user.displayName || '',
-          profileCompleted: false,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
+          profileCompleted: false
         });
         
         toast.success("Successfully signed in with Google! Please complete your profile.");
         navigate('/profile');
       } else {
-        // User exists, check profile completion
-        const profile = userDoc.data() as UserProfile;
-        setUserProfile(profile);
+        setUserProfile(profile as UserProfile);
         
         toast.success("Successfully signed in with Google!");
         
@@ -248,12 +229,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, { displayName });
         
-        // Also update the name in Firestore if profile exists
         if (userProfile) {
-          const userDocRef = doc(db, 'users', auth.currentUser.uid);
-          await updateDoc(userDocRef, { 
-            name: displayName,
-            updatedAt: serverTimestamp()
+          await updateFirestoreProfile(auth.currentUser.uid, { 
+            name: displayName
           });
           
           setUserProfile({
@@ -278,36 +256,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      const userDocRef = doc(db, 'users', currentUser.uid);
+      const existingProfile = await getUserProfile(currentUser.uid);
       
-      // Check if document exists
-      const userDoc = await getDoc(userDocRef);
-      
-      if (userDoc.exists()) {
-        // Update existing document
-        await updateDoc(userDocRef, {
+      if (existingProfile) {
+        await updateFirestoreProfile(currentUser.uid, {
           ...profileData,
-          profileCompleted: true,
-          updatedAt: serverTimestamp()
+          profileCompleted: true
         });
       } else {
-        // Create new document
-        await setDoc(userDocRef, {
+        await createUserProfile(currentUser.uid, {
           ...profileData,
           email: currentUser.email,
-          profileCompleted: true,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
+          profileCompleted: true
         });
       }
       
-      // Update local state
       setUserProfile({
         ...profileData,
         profileCompleted: true,
-        createdAt: userDoc.exists() ? userDoc.data().createdAt : serverTimestamp(),
+        createdAt: existingProfile ? existingProfile.createdAt : serverTimestamp(),
         updatedAt: serverTimestamp()
-      });
+      } as UserProfile);
       
       toast.success("Profile saved successfully!");
       return;
